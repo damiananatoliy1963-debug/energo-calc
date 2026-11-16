@@ -1,177 +1,180 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ЭнергоРезерв: Калькулятор автономности</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ЕнергоРезерв: калькулятор автономності</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-12">
-    <div class="max-w-md mx-auto p-4 sm:p-6">
-        <!-- Шапка -->
-        <header class="mb-6 text-center">
-            <div class="inline-block bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full mb-2 border border-amber-500/20">
-                ⚡ PRO-версия для расчёта автономности
-            </div>
-            <h1 class="text-2xl font-bold tracking-tight">ЭнергоРезерв</h1>
-            <p class="text-xs text-slate-400 mt-1">Точный расчёт АКБ, инвертора и времени работы при отключениях</p>
-        </header>
+  <div class="max-w-md mx-auto px-4 pt-6">
+    
+    <header class="mb-6 text-center">
+      <div class="inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full mb-3 border border-amber-500/20">
+        ⚡ PRO-версія для розрахунку автономності
+      </div>
+      <h1 class="text-2xl font-bold tracking-tight">ЕнергоРезерв</h1>
+      <p class="text-xs text-slate-400 mt-1">Точний розрахунок АКБ, інвертора та часу роботи при відключеннях</p>
+    </header>
 
-        <!-- Карточка 1: Аккумулятор -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-4 shadow-xl">
-            <h2 class="text-sm font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                <span>🔋</span> Параметры аккумулятора
-            </h2>
-            <div class="space-y-3">
-                <div>
-                    <label class="text-xs text-slate-400 block mb-1">Тип аккумулятора (химия)</label>
-                    <select id="batteryType" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-500" onchange="calculate()">
-                        <option value="0.85">LiFePO4 (Литий-железо-фосфат, DoD 85%)</option>
-                        <option value="0.50">AGM / GEL (Свинцово-кислотный, DoD 50%)</option>
-                        <option value="0.35">Автомобильный (Стартерный, DoD 35%)</option>
-                    </select>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">Ёмкость (А·ч)</label>
-                        <input type="number" id="battAh" value="100" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-500" oninput="calculate()">
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">Вольтаж АКБ (Вольт)</label>
-                        <select id="battV" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-500" onchange="calculate()">
-                            <option value="12">12 Вольт</option>
-                            <option value="24">24 Вольт</option>
-                            <option value="48" selected>48 Вольт</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 mb-4 shadow-xl">
+      <h2 class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+        🔋 Параметри акумулятора
+      </h2>
+      
+      <div class="mb-3">
+        <label class="block text-xs text-slate-400 mb-1">Тип акумулятора (хімія)</label>
+        <select id="batteryType" onchange="calculate()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+          <option value="0.85">LiFePO4 (Літій-залізо-фосфат, DoD 85%)</option>
+          <option value="0.80">Li-ion (Літій-іон, DoD 80%)</option>
+          <option value="0.50">AGM / GEL (Свинець, DoD 50%)</option>
+        </select>
+      </div>
 
-        <!-- Карточка 2: Нагрузка и приборы -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-4 shadow-xl">
-            <h2 class="text-sm font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                <span>🔌</span> Подключенные приборы
-            </h2>
-            <div id="appliancesList" class="space-y-2 mb-3">
-                <!-- Динамические строки приборов -->
-            </div>
-            <button onclick="addApplianceRow()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-xl border border-slate-700 transition">
-                + Добавить прибор
-            </button>
-        </section>
-
-        <!-- Карточка 3: Результаты расчёта -->
-        <section class="bg-gradient-to-br from-amber-500/10 to-slate-900 border border-amber-500/30 rounded-2xl p-4 mb-4 shadow-2xl">
-            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Результаты расчёта</h2>
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                    <span class="text-xs text-slate-400 block">Время автономности</span>
-                    <span id="resHours" class="text-xl font-bold text-amber-400">0 ч 0 мин</span>
-                </div>
-                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-                    <span class="text-xs text-slate-400 block">Потребление (среднее)</span>
-                    <span id="resWatts" class="text-xl font-bold text-slate-100">0 Вт</span>
-                </div>
-            </div>
-            <div class="space-y-2 text-xs text-slate-300 border-t border-slate-800 pt-3">
-                <div class="flex justify-between">
-                    <span>Рекомендуемый инвертор:</span>
-                    <span id="resInverter" class="font-semibold text-white">0 Вт</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Полезная энергия АКБ:</span>
-                    <span id="resWh" class="font-semibold text-white">0 Вт·ч</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Кнопка действия -->
-        <button onclick="copySpecs()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/20">
-            📋 Скопировать смету в буфер
-        </button>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Ємність (А·год)</label>
+          <input type="number" id="batteryAh" value="100" oninput="calculate()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Вольтаж АКБ (Вольт)</label>
+          <select id="batteryVolt" onchange="calculate()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500">
+            <option value="12">12 Вольт</option>
+            <option value="24">24 Вольт</option>
+            <option value="48" selected>48 Вольт</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <script>
-        // Предустановленные приборы
-        const defaultApps = [
-            { name: "Газовый котёл + циркуляционный насос", watts: 150, hours: 24 },
-            { name: "Холодильник (среднее за сутки)", watts: 120, hours: 24 },
-            { name: "Роутер + Оптический терминал (GPON)", watts: 15, hours: 24 },
-            { name: "Освещение (LED лампы)", watts: 40, hours: 5 }
-        ];
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 mb-6 shadow-xl">
+      <h2 class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+        🔌 Підключені прилади
+      </h2>
+      
+      <div id="appliancesList" class="space-y-3 mb-4">
+      </div>
 
-        function init() {
-            const container = document.getElementById('appliancesList');
-            container.innerHTML = '';
-            defaultApps.forEach(app => addApplianceRow(app.name, app.watts, app.hours));
-            calculate();
-        }
+      <button onclick="add ApplianceRow()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs py-2.5 rounded-xl transition border border-slate-700/50">
+        + Додати прилад
+      </button>
+    </div>
 
-        function addApplianceRow(name = "Новый прибор", watts = 100, hours = 4) {
-            const container = document.getElementById('appliancesList');
-            const div = document.createElement('div');
-            div.className = "flex gap-2 items-center bg-slate-950 p-2 rounded-xl border border-slate-800";
-            div.innerHTML = `
-                <input type="text" value="${name}" class="app-name bg-transparent text-xs w-full focus:outline-none text-slate-200">
-                <input type="number" value="${watts}" class="app-watts bg-slate-900 border border-slate-700 text-xs w-16 px-2 py-1 rounded text-center focus:outline-none" oninput="calculate()">
-                <span class="text-xs text-slate-500">Вт</span>
-                <input type="number" value="${hours}" class="app-hours bg-slate-900 border border-slate-700 text-xs w-14 px-2 py-1 rounded text-center focus:outline-none" oninput="calculate()">
-                <span class="text-xs text-slate-500">ч/сут</span>
-                <button onclick="this.parentElement.remove(); calculate();" class="text-rose-400 hover:text-rose-300 px-1 text-sm font-bold">×</button>
-            `;
-            container.appendChild(div);
-            calculate();
-        }
+    <div class="bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-4 mb-6 shadow-2xl">
+      <h2 class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-3">
+        📊 Результати розрахунку
+      </h2>
+      
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <div class="text-[10px] text-slate-400 uppercase">Корисна ємність АКБ</div>
+          <div id="resEnergy" class="text-lg font-bold text-slate-100">0 кВт·год</div>
+        </div>
+        <div>
+          <div class="text-[10px] text-slate-400 uppercase">Загальне навантаження</div>
+          <div id="resPower" class="text-lg font-bold text-slate-100">0 Вт</div>
+        </div>
+      </div>
 
-        function calculate() {
-            const ah = parseFloat(document.getElementById('battAh').value) || 0;
-            const v = parseFloat(document.getElementById('battV').value) || 12;
-            const dod = parseFloat(document.getElementById('batteryType').value) || 0.8;
-            const inverterEfficiency = 0.9;
+      <div class="border-t border-slate-800 pt-3 mb-4">
+        <div class="text-[10px] text-slate-400 uppercase">Час автономної роботи</div>
+        <div id="resHours" class="text-2xl font-extrabold text-amber-400 mt-0.5">0 год 0 хв</div>
+      </div>
 
-            const totalWh = ah * v * dod * inverterEfficiency;
-            document.getElementById('resWh').innerText = Math.round(totalWh) + " Вт·ч";
+      <button onclick="copySpecs()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-3 rounded-xl transition shadow-lg shadow-amber-500/10">
+        Копіювати специфікацію
+      </button>
+    </div>
 
-            const rows = document.querySelectorAll('#appliancesList > div');
-            let totalContinuousWatts = 0;
-            let maxWatts = 0;
+  </div>
 
-            rows.forEach(row => {
-                const w = parseFloat(row.querySelector('.app-watts').value) || 0;
-                const h = parseFloat(row.querySelector('.app-hours').value) || 0;
-                totalContinuousWatts += (w * (h / 24));
-                if (w > maxWatts) maxWatts = w;
-            });
+  <footer style="text-align: center; padding: 20px; color: #666; font-size: 14px;">
+    Телефон: +38 (095) 009 28 03<br>
+    сел. Глибока, Чернівецька область, Україна | Based in Ukraine
+  </footer>
 
-            document.getElementById('resWatts').innerText = Math.round(totalContinuousWatts) + " Вт";
-            document.getElementById('resInverter').innerText = Math.round(maxWatts * 1.3) + " Вт (с запасом)";
+  <script>
+    const defaultAppliances = [
+      { name: "Газовий котел + циркуляція", power: 150, hours: 24 },
+      { name: "Холодильник (середнє за добу)", power: 120, hours: 24 },
+      { name: "Роутер + Оптичний термінал", power: 15, hours: 24 },
+      { name: "Освітлення (LED лампи)", power: 40, hours: 5 }
+    ];
 
-            if (totalContinuousWatts > 0) {
-                const totalHours = totalWh / totalContinuousWatts;
-                const hrs = Math.floor(totalHours);
-                const mins = Math.round((totalHours - hrs) * 60);
-                document.getElementById('resHours').innerText = `${hrs} ч ${mins} мин`;
-            } else {
-                document.getElementById('resHours').innerText = "0 ч 0 мин";
-            }
-        }
+    function init() {
+      const container = document.getElementById('appliancesList');
+      container.innerHTML = '';
+      defaultAppliances.forEach((item, index) => {
+        addApplianceRowData(item.name, item.power, item.hours, index);
+      });
+      calculate();
+    }
 
-        function copySpecs() {
-            const text = `⚡ Смета автономности:\n- Полезная емкость АКБ: ${document.getElementById('resWh').innerText}\n- Среднее потребление: ${document.getElementById('resWatts').innerText}\n- Расчетное время работы: ${document.getElementById('resHours').innerText}\n- Рекомендуемый инвертор: ${document.getElementById('resInverter').innerText}`;
-            navigator.clipboard.writeText(text);
-            alert("Смета скопирована в буфер обмена!");
-        }
+    function addApplianceRow() {
+      addApplianceRowData("Новий прилад", 100, 4);
+      calculate();
+    }
 
-        window.onload = init;
-    </script>
-<footer style="text-align: center; padding: 20px; color: #666; font-size: 14px;">
-  Телефон: +38 (095) 009 28 03<br>
-  сел. Глибока, Чернівецька область, Україна | Based in Ukraine
-</footer>
+    function addApplianceRowData(name, power, hours, index = Date.now()) {
+      const container = document.getElementById('appliancesList');
+      const row = document.createElement('div');
+      row.className = "flex items-center gap-2 bg-slate-950/50 p-2 rounded-xl border border-slate-800/60";
+      row.innerHTML = `
+        <input type="text" value="${name}" class="w-full bg-transparent text-xs text-slate-200 focus:outline-none border-b border-transparent focus:border-amber-500 px-1">
+        <input type="number" value="${power}" oninput="calculate()" class="w-16 bg-slate-9ov border border-slate-800 rounded-lg px-2 py-1 text-xs text-center text-slate-200 focus:outline-none focus:border-amber-500">
+        <span class="text-[10px] text-slate-400">Вт</span>
+        <input type="number" value="${hours}" oninput="calculate()" class="w-14 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-xs text-center text-slate-200 focus:outline-none focus:border-amber-500">
+        <span class="text-[10px] text-slate-400">год</span>
+        <button onclick="this.parentElement.remove(); calculate();" class="text-slate-500 hover:text-red-400 px-1 text-sm font-bold">×</button>
+      `;
+      container.appendChild(row);
+    }
+
+    function calculate() {
+      const depth = parseFloat(document.getElementById('batteryType').value);
+      const ah = parseFloat(document.getElementById('batteryAh').value) || 0;
+      const volt = parseFloat(document.getElementById('batteryVolt').value) || 48;
+
+      const totalWh = ah * volt * depth;
+      document.getElementById('resEnergy').innerText = (totalWh / 1000).toFixed(2) + " кВт·год";
+
+      const rows = document.getElementById('appliancesList').children;
+      let totalContinuousWatts = 0;
+      let dailyEnergyNeeded = 0;
+
+      for (let row of rows) {
+        const inputs = row.querySelectorAll('input');
+        const power = parseFloat(inputs[1].value) || 0;
+        const hoursPerDay = parseFloat(inputs[2].value) || 0;
+
+        totalContinuousWatts += power;
+        dailyEnergyNeeded += (power * hoursPerDay);
+      }
+
+      document.getElementById('resPower').innerText = totalContinuousWatts + " Вт";
+
+      if (dailyEnergyNeeded > 0) {
+        const totalDays = totalWh / dailyEnergyNeeded;
+        const hrs = Math.floor(totalDays * 24);
+        const mins = Math.round((totalDays * 24 - hrs) * 60);
+        document.getElementById('resHours').innerText = `${hrs} год ${mins} хв`;
+      } else {
+        document.getElementById('resHours').innerText = "0 год 0 хв";
+      }
+    }
+
+    function copySpecs() {
+      const text = `⚡ Специфікація автономності:\n- Корисна ємність АКБ: ${document.getElementById('resEnergy').innerText}\n- Загальне навантаження: ${document.getElementById('resPower').innerText}\n- Час роботи: ${document.getElementById('resHours').innerText}`;
+      navigator.clipboard.writeText(text);
+      alert("Специфікацію скопійовано в буфер обміну!");
+    }
+
+    window.onload = init;
+  </script>
+</body>
 </html>
