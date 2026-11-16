@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЭнергоРезерв: Калькулятор автономности</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-12">
+    <div class="max-w-md mx-auto p-4 sm:p-6">
+        <!-- Шапка -->
+        <header class="mb-6 text-center">
+            <div class="inline-block bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full mb-2 border border-amber-500/20">
+                ⚡ PRO-версия для расчёта автономности
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight">ЭнергоРезерв</h1>
+            <p class="text-xs text-slate-400 mt-1">Точный расчёт АКБ, инвертора и времени работы при отключениях</p>
+        </header>
+
+        <!-- Карточка 1: Аккумулятор -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-4 shadow-xl">
+            <h2 class="text-sm font-semibold text-amber-400 mb-3 flex items-center gap-2">
+                <span>🔋</span> Параметры аккумулятора
+            </h2>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Тип аккумулятора (химия)</label>
+                    <select id="batteryType" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-500" onchange="calculate()">
+                        <option value="0.85">LiFePO4 (Литий-железо-фосфат, DoD 85%)</option>
+                        <option value="0.50">AGM / GEL (Свинцово-кислотный, DoD 50%)</option>
+                        <option value="0.35">Автомобильный (Стартерный, DoD 35%)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Ёмкость (А·ч)</label>
+                        <input type="number" id="battAh" value="100" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-500" oninput="calculate()">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Вольтаж АКБ (Вольт)</label>
+                        <select id="battV" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-amber-500" onchange="calculate()">
+                            <option value="12">12 Вольт</option>
+                            <option value="24">24 Вольт</option>
+                            <option value="48" selected>48 Вольт</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Карточка 2: Нагрузка и приборы -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-4 shadow-xl">
+            <h2 class="text-sm font-semibold text-amber-400 mb-3 flex items-center gap-2">
+                <span>🔌</span> Подключенные приборы
+            </h2>
+            <div id="appliancesList" class="space-y-2 mb-3">
+                <!-- Динамические строки приборов -->
+            </div>
+            <button onclick="addApplianceRow()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-xl border border-slate-700 transition">
+                + Добавить прибор
+            </button>
+        </section>
+
+        <!-- Карточка 3: Результаты расчёта -->
+        <section class="bg-gradient-to-br from-amber-500/10 to-slate-900 border border-amber-500/30 rounded-2xl p-4 mb-4 shadow-2xl">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Результаты расчёта</h2>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+                    <span class="text-xs text-slate-400 block">Время автономности</span>
+                    <span id="resHours" class="text-xl font-bold text-amber-400">0 ч 0 мин</span>
+                </div>
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+                    <span class="text-xs text-slate-400 block">Потребление (среднее)</span>
+                    <span id="resWatts" class="text-xl font-bold text-slate-100">0 Вт</span>
+                </div>
+            </div>
+            <div class="space-y-2 text-xs text-slate-300 border-t border-slate-800 pt-3">
+                <div class="flex justify-between">
+                    <span>Рекомендуемый инвертор:</span>
+                    <span id="resInverter" class="font-semibold text-white">0 Вт</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Полезная энергия АКБ:</span>
+                    <span id="resWh" class="font-semibold text-white">0 Вт·ч</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Кнопка действия -->
+        <button onclick="copySpecs()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/20">
+            📋 Скопировать смету в буфер
+        </button>
+    </div>
+
+    <script>
+        // Предустановленные приборы
+        const defaultApps = [
+            { name: "Газовый котёл + циркуляционный насос", watts: 150, hours: 24 },
+            { name: "Холодильник (среднее за сутки)", watts: 120, hours: 24 },
+            { name: "Роутер + Оптический терминал (GPON)", watts: 15, hours: 24 },
+            { name: "Освещение (LED лампы)", watts: 40, hours: 5 }
+        ];
+
+        function init() {
+            const container = document.getElementById('appliancesList');
+            container.innerHTML = '';
+            defaultApps.forEach(app => addApplianceRow(app.name, app.watts, app.hours));
+            calculate();
+        }
+
+        function addApplianceRow(name = "Новый прибор", watts = 100, hours = 4) {
+            const container = document.getElementById('appliancesList');
+            const div = document.createElement('div');
+            div.className = "flex gap-2 items-center bg-slate-950 p-2 rounded-xl border border-slate-800";
+            div.innerHTML = `
+                <input type="text" value="${name}" class="app-name bg-transparent text-xs w-full focus:outline-none text-slate-200">
+                <input type="number" value="${watts}" class="app-watts bg-slate-900 border border-slate-700 text-xs w-16 px-2 py-1 rounded text-center focus:outline-none" oninput="calculate()">
+                <span class="text-xs text-slate-500">Вт</span>
+                <input type="number" value="${hours}" class="app-hours bg-slate-900 border border-slate-700 text-xs w-14 px-2 py-1 rounded text-center focus:outline-none" oninput="calculate()">
+                <span class="text-xs text-slate-500">ч/сут</span>
+                <button onclick="this.parentElement.remove(); calculate();" class="text-rose-400 hover:text-rose-300 px-1 text-sm font-bold">×</button>
+            `;
+            container.appendChild(div);
+            calculate();
+        }
+
+        function calculate() {
+            const ah = parseFloat(document.getElementById('battAh').value) || 0;
+            const v = parseFloat(document.getElementById('battV').value) || 12;
+            const dod = parseFloat(document.getElementById('batteryType').value) || 0.8;
+            const inverterEfficiency = 0.9;
+
+            const totalWh = ah * v * dod * inverterEfficiency;
+            document.getElementById('resWh').innerText = Math.round(totalWh) + " Вт·ч";
+
+            const rows = document.querySelectorAll('#appliancesList > div');
+            let totalContinuousWatts = 0;
+            let maxWatts = 0;
+
+            rows.forEach(row => {
+                const w = parseFloat(row.querySelector('.app-watts').value) || 0;
+                const h = parseFloat(row.querySelector('.app-hours').value) || 0;
+                totalContinuousWatts += (w * (h / 24));
+                if (w > maxWatts) maxWatts = w;
+            });
+
+            document.getElementById('resWatts').innerText = Math.round(totalContinuousWatts) + " Вт";
+            document.getElementById('resInverter').innerText = Math.round(maxWatts * 1.3) + " Вт (с запасом)";
+
+            if (totalContinuousWatts > 0) {
+                const totalHours = totalWh / totalContinuousWatts;
+                const hrs = Math.floor(totalHours);
+                const mins = Math.round((totalHours - hrs) * 60);
+                document.getElementById('resHours').innerText = `${hrs} ч ${mins} мин`;
+            } else {
+                document.getElementById('resHours').innerText = "0 ч 0 мин";
+            }
+        }
+
+        function copySpecs() {
+            const text = `⚡ Смета автономности:\n- Полезная емкость АКБ: ${document.getElementById('resWh').innerText}\n- Среднее потребление: ${document.getElementById('resWatts').innerText}\n- Расчетное время работы: ${document.getElementById('resHours').innerText}\n- Рекомендуемый инвертор: ${document.getElementById('resInverter').innerText}`;
+            navigator.clipboard.writeText(text);
+            alert("Смета скопирована в буфер обмена!");
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
